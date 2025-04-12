@@ -16,7 +16,6 @@ from langchain.chains import RetrievalQA
 
 st.title("ChatBot for Medical Support with RAG")
 
-
 #Setup session state variable to hold the chat history
 
 if 'chat_history' not in st.session_state:
@@ -36,7 +35,6 @@ def get_vector_store():
         text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     ).from_loaders(loaders)
     return index.vectorstore
-
 
 prompt = st.chat_input("Enter your message here")
 
@@ -61,6 +59,8 @@ if(prompt):
                                                        Start giving answer and be a bit funny"""
     )
 
+    formatted_prompt = groq_sys_prompt.format(user_prompt=prompt)
+
     try:
         vectorstore = get_vector_store()
         if vectorstore is None:
@@ -72,7 +72,7 @@ if(prompt):
             retriever=vectorstore.as_retriever(search_kwargs={'k': 3}),
             return_source_documents=True)
 
-        result = chain({"query": prompt})
+        result = chain({"query": formatted_prompt})
         response = result["result"]            
 
         # response = "Hi there! I am a FuDDu chatbot."
