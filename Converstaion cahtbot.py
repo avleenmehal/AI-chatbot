@@ -3,7 +3,7 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.document_loaders import PyPDFLoader
+from langchain.document_loaders import CSVLoader
 from langchain.indexes import VectorstoreIndexCreator
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
@@ -30,18 +30,32 @@ for message in st.session_state.chat_history:
 
 @st.cache_resource
 def get_vector_store():
-    pdf_name = "./attentionIsAllYouNeed.pdf"
-    loaders = [PyPDFLoader(pdf_name)]
+    # Path to your CSV
+    csv_file_path = "./train_data_chatbot.csv"
+    
+
+    loader = CSVLoader(
+        file_path=csv_file_path,
+        encoding='utf-8'  # or your file's encoding if different
+    )
+    
+    # 2. Pass the loader to VectorstoreIndexCreator
     index = VectorstoreIndexCreator(
         embedding=HuggingFaceEmbeddings(model_name='all-MiniLM-L12-v2'),
         text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    ).from_loaders(loaders)
+    ).from_loaders([loader])
+    
     return index.vectorstore
-
 # Custom prompt with explicit chat history handling
 custom_prompt = ChatPromptTemplate.from_template(
     """You are an AI medical researcher. Use the following context and conversation history to answer the question.
     Maintain a friendly tone and include appropriate humor when suitable.
+    Below are some examples on how you will be interacting with the user:
+    Example 1: User says I have cold.
+    AI bot: Sorry to hear but its good you'll have some rest days. Also you can take Sumo cold tablets one a day along with Paracetamol to make you feel better.
+
+    Example 2: User says I have Cancer
+    Ai Bot: Oh my god, jokes apart , contact doctor as soon as possible and you'll be fine. But hey you'll have your dream sportstar visit you in person in the hospital.
     
     Context: {context}
     
