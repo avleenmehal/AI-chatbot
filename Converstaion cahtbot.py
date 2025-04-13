@@ -86,7 +86,7 @@ if prompt:
     try:
         vectorstore = get_vector_store()
         groq_chat = ChatGroq(
-            groq_api_key="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",
+            groq_api_key=os.environ.get("GROQ_API_KEY"),
             model_name="llama-3.3-70b-versatile"
         )
 
